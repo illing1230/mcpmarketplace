@@ -1,0 +1,112 @@
+<script>
+  import {filteredMcps, loading } from '../lib/stores/mcpStore.js';
+  import SearchBar from '../lib/components/SearchBar.svelte';
+  export let data;
+  let mcps = data.mcps || [];
+  
+  // 카테고리 동적 계산
+  $: categories = mcps ? [...new Set(mcps.map(mcp => mcp.category).filter(Boolean))] : [];
+  $: categoryCount = categories.length;
+  
+  // 다운로드 수 계산 (만약 데이터에 있다면)
+  $: totalDownloads = mcps ? mcps.reduce((sum, mcp) => sum + (mcp.downloads || 0), 0) : 0;
+  
+  // 다운로드 수를 K, M 형태로 포맷팅
+  function formatDownloads(count) {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M+`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(0)}K+`;
+    }
+    return count.toString();
+  }
+</script>
+
+<svelte:head>
+	<title>MCP Marketplace - Discover Model Context Protocol Servers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stats-container {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-left: 2rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-container {
+                display: none;
+            }
+        }
+    </style>
+</svelte:head>
+
+<div class="flex items-center space-x-3">
+  <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+    </svg>
+  </div>
+
+  <div>
+    <h1 class="text-2xl font-bold text-gradient">SMART HUB mcp archive</h1>
+    <p class="text-sm text-gray-600">MCP(Model Context Protocol) mcp archive</p>
+  </div>
+
+  <div class="stats-container">
+    <!-- MCP 개수 -->
+    <div class="stat-item">
+      <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+      </svg>
+      <span>{mcps.length} MCP's</span>
+    </div>
+
+    <!-- 카테고리 개수 (동적) -->
+    <div class="stat-item">
+      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+      </svg>
+      <span>{categoryCount} Categories</span>
+    </div>
+
+    <!-- 다운로드 수 (동적) -->
+    <div class="stat-item">
+      <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+      </svg>
+      <span>{formatDownloads(totalDownloads)} Downloads</span>
+    </div>
+  </div>
+</div>
+
+<SearchBar />
